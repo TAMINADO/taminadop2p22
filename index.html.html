@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TAMINADO P2P</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#f2f4f0;--card:#fff;--ink:#14201f;--mute:#5d6b69;--line:#d9dfdb;--pine:#7a0019;--on-pine:#fff;--amber:#e8a317;--red:#b3412e;--ok:#1d7a4d}
+@media (prefers-color-scheme:dark){:root{--bg:#140e10;--card:#201619;--ink:#f1e9ea;--mute:#a8999c;--line:#3a2a2e;--pine:#a3122f;--amber:#f0b73a;--red:#e0735f;--ok:#4cc38a;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "Bricolage Grotesque",system-ui,sans-serif;padding-bottom:76px}
+header{position:sticky;top:0;z-index:5;background:var(--pine);color:var(--on-pine);padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+header b{font-size:20px;font-weight:800}
+main{max-width:1000px;margin:0 auto;padding:16px}
+h2{margin:4px 0 12px;font-size:22px;font-weight:800}h3{margin:0 0 6px;font-size:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;min-width:0}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.mute{color:var(--mute);font-size:13px}.price{font-size:22px;font-weight:800}
+.btn{background:var(--pine);color:var(--on-pine);border:0;border-radius:10px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer}
+.btn.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}.btn.warn{background:var(--red)}.btn.go{background:var(--ok)}
+input,select,textarea{font:inherit;width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+label{display:block;margin:8px 0 4px;font-weight:600}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:6px 14px;font:inherit;font-weight:600;cursor:pointer}
+.chip.on{background:var(--pine);color:var(--on-pine);border-color:var(--pine)}
+.tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--mute)}
+.st-awaiting_payment,.st-paid,.st-disputed{border-color:var(--amber);color:var(--amber)}
+.st-released{border-color:var(--ok);color:var(--ok)}.st-cancelled,.st-expired,.st-refunded{border-color:var(--red);color:var(--red)}
+.timer{font-size:28px;font-weight:800;font-variant-numeric:tabular-nums}
+.chat{max-height:240px;overflow:auto;display:flex;flex-direction:column;gap:6px;margin:8px 0}
+.msg{padding:7px 10px;border-radius:10px;background:var(--bg);max-width:85%;overflow-wrap:anywhere}
+.msg.me{align-self:flex-end;background:var(--pine);color:var(--on-pine)}
+.msg.sys{align-self:center;font-size:12px;color:var(--mute);background:none;text-align:center}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))}.grid .card{margin:0}
+.two{display:grid;gap:12px;grid-template-columns:1fr}
+.hero{background:var(--pine);color:var(--on-pine);border-radius:14px;padding:18px;margin-bottom:14px}.hero h2{margin:0 0 4px}.hero p{margin:0;opacity:.9}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;z-index:6}
+nav button{flex:1;background:none;border:0;padding:14px 4px;color:var(--mute);font:inherit;font-weight:600;cursor:pointer}
+nav button.on{color:var(--ink);box-shadow:inset 0 3px 0 var(--amber)}
+.empty{text-align:center;color:var(--mute);padding:24px}.note{font-size:12px;color:var(--mute);margin:16px 0}
+.sum{display:grid;grid-template-columns:1fr auto;gap:4px 12px;margin-top:8px}.sum span:nth-child(odd){color:var(--mute)}.sum span:nth-child(even){text-align:right;font-weight:600}
+.login{max-width:420px;margin:0 auto;padding-top:24px}.login h1{text-align:center;font-size:26px}
+.wm{text-align:center;font-size:36px;font-weight:800;color:var(--pine);letter-spacing:-.03em}.wm span{display:block;font-size:20px;letter-spacing:.35em;font-weight:600}
+.err{color:var(--red);min-height:22px;font-size:13px;margin:8px 0}.okm{color:var(--ok);font-size:13px;margin:8px 0}
+.lnk{color:var(--pine);font-weight:700;cursor:pointer;text-align:center;display:block;margin:12px 0}
+details.card summary{cursor:pointer;font-weight:600}
+@media (min-width:820px){body{padding-bottom:0}nav{position:static;max-width:1000px;margin:0 auto;border:0;border-bottom:1px solid var(--line);background:none}nav button{flex:0 0 auto;padding:14px 22px}.two{grid-template-columns:1fr 1fr;align-items:start}}
+</style>
+</head>
+<body>
+<header hidden id="hd"><b>TAMINADO P2P</b><span class="row" style="gap:10px"><span class="mute" style="color:inherit" id="who"></span><button class="btn alt" style="color:#fff;border-color:#fff" onclick="signOut()">Sign out</button></span></header>
+<nav id="nav"></nav>
+<main id="app"></main>
+<script>
+const SB_URL="https://cqmlniyrlluecskjvngg.supabase.co";
+const SB_KEY="sb_publishable_mMvoHo6fIFoarSjszfO5TA_b-wkYw9j";
+const sb=supabase.createClient(SB_URL,SB_KEY);
+const COINS={USDT:{n:"Tether",d:2},USDC:{n:"USD Coin",d:2},BTC:{n:"Bitcoin",d:8},ETH:{n:"Ethereum",d:6},BNB:{n:"BNB",d:4}};
+const CL=Object.keys(COINS),CUR="MWK";
+const $=s=>document.querySelector(s);
+const esc=t=>String(t??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fm=n=>(Math.round(n*100)/100).toLocaleString();
+const fc=(n,c)=>(+n).toLocaleString(undefined,{maximumFractionDigits:COINS[c].d});
+let S={user:null,prof:null,view:"dash",mode:"buy",coin:"USDT",open:null,rates:{},set:{min_fiat:5000,max_fiat:2000000,pay_minutes:15},wallets:[],orders:[],msgs:[],ledger:[],signals:[],profiles:{},bank:""};
+let AV="in",MSG="";
+const adm=()=>S.prof&&S.prof.role==="admin";
+const rate=(c,m)=>+(S.rates[c]?.[m]||0);
+const wal=c=>S.wallets.find(w=>w.coin===c&&w.user_id===S.user.id)||{available:0,locked:0};
+const nameOf=id=>S.profiles[id]?.full_name||S.profiles[id]?.email||"Customer";
+
+async function rpc(fn,args){const{data,error}=await sb.rpc(fn,args||{});if(error){alert(error.message);return null}await load(true);return data??true}
+async function load(force){
+ if(!S.user)return;
+ const q=t=>sb.from(t).select("*");
+ const [p,r,s,w,o,m,l,g]=await Promise.all([q("profiles"),q("rates"),q("app_settings"),q("wallets"),q("orders").order("created_at",{ascending:false}),q("order_messages").order("created_at"),q("ledger").order("created_at",{ascending:false}),q("signals").order("created_at",{ascending:false})]);
+ S.profiles=Object.fromEntries((p.data||[]).map(x=>[x.id,x]));S.prof=S.profiles[S.user.id]||S.prof;
+ S.rates=Object.fromEntries((r.data||[]).map(x=>[x.coin,{buy:+x.buy_rate,sell:+x.sell_rate}]));
+ if(s.data&&s.data[0])S.set=s.data[0];
+ S.wallets=w.data||[];S.orders=o.data||[];S.msgs=m.data||[];S.ledger=l.data||[];S.signals=g.data||[];
+ if(adm()){const b=await sb.from("payment_details").select("details").eq("id",1).maybeSingle();S.bank=b.data?.details||""}
+ const a=document.activeElement;
+ if(force||!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)))render();
+}
+async function boot(){
+ const{data}=await sb.auth.getSession();
+ if(data.session){S.user=data.session.user;await load(true)}else render();
+ sb.auth.onAuthStateChange((e,s)=>{if(e==="SIGNED_OUT"){S.user=null;S.prof=null;render()}});
+}
+async function signOut(){await sb.auth.signOut();S.user=null;S.prof=null;AV="in";render()}
+async function doIn(){const{data,error}=await sb.auth.signInWithPassword({email:$("#em").value.trim(),password:$("#pw").value});
+ if(error)return $("#er").textContent=error.message;S.user=data.user;S.view="dash";await load(true);if(adm())S.view="orders",render()}
+async function doUp(){const nm=$("#nm").value.trim(),em=$("#em").value.trim(),pw=$("#pw").value;
+ if(nm.length<2)return $("#er").textContent="Enter your full name.";
+ if(pw.length<8)return $("#er").textContent="Password needs at least 8 characters.";
+ if(pw!==$("#pw2").value)return $("#er").textContent="Passwords don’t match.";
+ const{data,error}=await sb.auth.signUp({email:em,password:pw,options:{data:{full_name:nm}}});
+ if(error)return $("#er").textContent=error.message;
+ if(data.session){S.user=data.user;S.view="dash";await load(true)}else{MSG="Account created. Check your email to confirm, then sign in.";AV="in";render()}}
+async function doReset(){const{error}=await sb.auth.resetPasswordForEmail($("#em").value.trim());
+ if(error)return $("#er").textContent=error.message;MSG="Reset link sent to your email.";AV="in";render()}
+const go=v=>{AV=v;MSG="";render()};
+
+function vLogin(){const hd=t=>`<div class="wm">TAMINADO<span>P2P</span></div><p class="mute" style="text-align:center">Trade safely. Every time.</p><h1>${t}</h1>`;
+ if(AV==="up")return`<div class="login">${hd("Create your account")}<label for="nm">Full name</label><input id="nm"><label for="em">Email</label><input id="em" type="email"><label for="pw">Password</label><input id="pw" type="password"><label for="pw2">Confirm password</label><input id="pw2" type="password"><div class="err" id="er"></div><button class="btn" style="width:100%" onclick="doUp()">Create account</button><a class="lnk" onclick="go('in')">Already have an account? Sign in</a></div>`;
+ if(AV==="forgot")return`<div class="login">${hd("Reset password")}<label for="em">Email</label><input id="em" type="email"><div class="err" id="er"></div><button class="btn" style="width:100%" onclick="doReset()">Send reset link</button><a class="lnk" onclick="go('in')">Back to sign in</a></div>`;
+ return`<div class="login">${hd("Welcome back")}<label for="em">Email</label><input id="em" type="email"><label for="pw">Password</label><input id="pw" type="password" onkeydown="if(event.key==='Enter')doIn()">${MSG?`<div class="okm">${MSG}</div>`:""}<div class="err" id="er"></div><button class="btn" style="width:100%" onclick="doIn()">Sign in</button><a class="lnk" onclick="go('forgot')">Forgot password?</a><a class="lnk" onclick="go('up')">Don’t have an account? Sign up</a></div>`}
+
+const stL=o=>({awaiting_payment:o.type==="buy"?"Awaiting customer payment":"Awaiting TAMINADO payout",paid:o.type==="buy"?"Paid, awaiting release":"Paid out, awaiting confirmation",released:"Completed",cancelled:"Cancelled",expired:"Expired",disputed:"In dispute",refunded:"Refunded"}[o.status]);
+const stTag=o=>`<span class="tag st-${o.status}">${stL(o)}</span>`;
+const tl=o=>(o.type==="buy"?"Buy ":"Sell ")+o.coin;
+const tips=`<ul style="padding-left:20px;margin:6px 0 0"><li>Only pay to the account shown inside your order.</li><li>Pay from an account in your own name.</li><li>Keep all talk in the order chat.</li><li>Never share passwords or codes.</li></ul>`;
+
+function vDash(){return`<div class="hero"><h2>Hello, ${esc(S.prof?.full_name||"")}</h2><p>Buy and sell crypto with escrow protection.</p></div><div class="grid"><div class="card"><h3>Quick Buy</h3><p class="mute">Pay ${CUR}, receive crypto</p><button class="btn" onclick="goTrade('buy')">Buy crypto</button></div><div class="card"><h3>Quick Sell</h3><p class="mute">Sell crypto, receive ${CUR}</p><button class="btn" onclick="goTrade('sell')">Sell crypto</button></div><div class="card"><h3>My Wallet</h3><p class="mute">Balances and escrow</p><button class="btn alt" onclick="nav('wallet')">Open</button></div></div>`}
+function goTrade(m){S.mode=m;S.view="trade";render()}
+function nav(v,id){S.view=v;if(id)S.open=id;render()}
+function setCoin(c){S.coin=c;render()}function setMode(m){S.mode=m;render()}
+function calc(){const c=S.coin,v=+$("#amt").value||0,r=$("#rc");if(!r)return;const x=rate(c,S.mode);
+ r.textContent=!(x>0)?"TAMINADO must set this coin’s rate first":!v?"Enter an amount":S.mode==="buy"?"You receive about "+fc(v/x,c)+" "+c:"You receive about "+fm(v*x)+" "+CUR}
+function vTrade(){const c=S.coin,m=S.mode,x=rate(c,m);
+ return`<div class="chips">${CL.map(k=>`<button class="chip ${k===c?"on":""}" onclick="setCoin('${k}')">${k}</button>`).join("")}</div>
+ <div class="two"><div class="card"><div class="chips"><button class="chip ${m==="buy"?"on":""}" onclick="setMode('buy')">Buy ${c}</button><button class="chip ${m==="sell"?"on":""}" onclick="setMode('sell')">Sell ${c}</button></div>
+ <div class="mute">${COINS[c].n} · ${m==="buy"?"you pay":"you receive"}</div><div class="price">${x>0?fm(x)+" "+CUR:"Rate not set"}</div><div class="mute">per 1 ${c}</div>
+ <div class="sum"><span>Limits</span><span>${fm(S.set.min_fiat)} to ${fm(S.set.max_fiat)} ${CUR}</span>${m==="sell"?`<span>Your balance</span><span>${fc(wal(c).available,c)} ${c}</span>`:""}</div>
+ <label for="amt">${m==="buy"?"Amount to spend ("+CUR+")":"Amount to sell ("+c+")"}</label><input type="number" id="amt" step="any" oninput="calc()">
+ ${m==="sell"?`<label for="acct">Account to receive ${CUR}</label><input id="acct" placeholder="Provider, account name and number">`:""}
+ <div class="mute" id="rc" style="margin:8px 0">Enter an amount</div>
+ <button class="btn" style="width:100%" onclick="placeOrder()">${m==="buy"?"Buy":"Sell"} ${c}</button></div><div class="card"><h3>Stay safe</h3>${tips}</div></div>`}
+async function placeOrder(){const c=S.coin,v=+$("#amt").value;
+ const id=S.mode==="buy"?await rpc("open_buy_order",{p_coin:c,p_fiat:v}):await rpc("open_sell_order",{p_coin:c,p_amount:v,p_account:$("#acct").value});
+ if(id&&id!==true){S.open=id;S.view="order";render()}}
+function vOrders(){const mine=S.orders;return`<h2>${adm()?"All orders":"My orders"}</h2>`+(mine.length?`<div class="grid">`+mine.map(o=>`<div class="card" onclick="nav('order',${o.id})" style="cursor:pointer"><div class="row"><b>#${o.id} · ${tl(o)}</b>${stTag(o)}</div><div class="mute">${fc(o.amount,o.coin)} ${o.coin} · ${fm(o.fiat)} ${CUR}${adm()?" · "+esc(nameOf(o.user_id)):""}</div></div>`).join("")+`</div>`:`<div class="empty">No orders yet.</div>`)}
+function vOrder(){const o=S.orders.find(x=>x.id===S.open);if(!o)return vOrders();const own=o.user_id===S.user.id,buy=o.type==="buy",A=adm();let act="";const id=o.id;
+ if(own&&buy&&o.status==="awaiting_payment")act=`<button class="btn go" onclick="rpc('mark_paid',{p_order:${id}})">I’ve paid</button><button class="btn alt" onclick="rpc('cancel_order',{p_order:${id}})">Cancel order</button>`;
+ if(own&&!buy&&o.status==="awaiting_payment")act=`<button class="btn alt" onclick="rpc('cancel_order',{p_order:${id}})">Cancel order</button>`;
+ if(A&&buy&&["awaiting_payment","paid"].includes(o.status))act=(o.status==="paid"?`<button class="btn go" onclick="rpc('admin_approve_buy',{p_order:${id}})">Payment received, release ${o.coin}</button>`:"")+`<button class="btn alt" onclick="rpc('cancel_order',{p_order:${id}})">Reject and cancel</button>`;
+ if(A&&!buy&&o.status==="awaiting_payment")act=`<button class="btn go" onclick="rpc('admin_mark_sent',{p_order:${id}})">I’ve sent the ${CUR}</button>`;
+ if(own&&!buy&&o.status==="paid")act=`<button class="btn go" onclick="rpc('confirm_received',{p_order:${id}})">I received the ${CUR}</button><button class="btn warn" onclick="rpc('dispute_order',{p_order:${id}})">Report a problem</button>`;
+ if(A&&!buy&&o.status==="disputed")act=`<button class="btn" onclick="rpc('admin_close_dispute_paid',{p_order:${id}})">Close as paid</button><button class="btn alt" onclick="rpc('admin_refund_dispute',{p_order:${id}})">Refund customer</button>`;
+ const msgs=S.msgs.filter(m=>m.order_id===id),canChat=!["cancelled","expired","refunded","released"].includes(o.status);
+ return`<button class="btn alt" onclick="nav('orders')">Back to orders</button><h2 style="margin-top:12px">Order #${id} · ${tl(o)}</h2>
+ <div class="two"><div><div class="card"><div class="row"><div><div class="mute">${buy?(own?"You pay":"Customer pays"):(own?"You receive":"You pay the customer")}</div><div class="price">${fm(o.fiat)} ${CUR}</div></div>${stTag(o)}</div>
+ ${buy&&o.status==="awaiting_payment"&&o.expires_at?`<div class="mute" style="margin-top:8px">Time left to pay</div><div class="timer" id="tm" data-exp="${new Date(o.expires_at).getTime()}"></div>`:""}
+ <div class="sum"><span>Coin</span><span>${o.coin}</span><span>Crypto in escrow</span><span>${fc(o.amount,o.coin)}</span><span>Rate</span><span>${fm(o.rate)} ${CUR}</span><span>Customer</span><span>${esc(nameOf(o.user_id))}</span></div>
+ ${buy&&o.status==="awaiting_payment"&&o.pay_to?`<div class="card" style="margin:10px 0 0;background:var(--bg)"><b>Pay to this account</b><div style="white-space:pre-line">${esc(o.pay_to)}</div></div>`:""}
+ ${!buy?`<div class="card" style="margin:10px 0 0;background:var(--bg)"><b>Customer’s account</b><div style="white-space:pre-line">${esc(o.customer_account)}</div></div>`:""}
+ <div class="actions">${act}</div></div><div class="card"><h3>Stay safe</h3>${tips}</div></div>
+ <div class="card"><h3>Order chat</h3><div class="chat" id="chat">${msgs.map(m=>`<div class="msg ${m.is_system?"sys":m.sender_id===S.user.id?"me":""}">${!m.is_system&&m.sender_id!==S.user.id?`<div class="mute">${esc(nameOf(m.sender_id))}</div>`:""}${esc(m.body)}</div>`).join("")}</div>
+ ${canChat?`<div class="row" style="flex-wrap:nowrap"><input id="cm" placeholder="Write a message" onkeydown="if(event.key==='Enter')sendMsg(${id})"><button class="btn" onclick="sendMsg(${id})">Send</button></div>`:""}</div></div>`}
+async function sendMsg(id){const t=$("#cm").value.trim();if(!t)return;await rpc("send_message",{p_order:id,p_body:t});const i=$("#cm");if(i)i.focus()}
+function vWallet(){const mine=S.wallets.filter(w=>w.user_id===S.user.id);
+ return`<h2>${adm()?"Stock":"Wallet"}</h2><div class="grid">${CL.map(k=>{const w=mine.find(x=>x.coin===k)||{available:0,locked:0};return`<div class="card"><div class="row"><b>${k}</b><span class="mute">${COINS[k].n}</span></div><div class="price">${fc(w.available,k)}</div><div class="mute">Available · ${fc(w.locked,k)} in escrow</div></div>`}).join("")}</div>
+ ${adm()?`<div class="card" style="margin-top:12px"><h3>Add stock</h3><div class="row" style="flex-wrap:nowrap"><select id="sc" style="width:auto">${CL.map(k=>`<option>${k}</option>`).join("")}</select><input id="sv" type="number" step="any" placeholder="Amount"><button class="btn" onclick="addStock()">Add</button></div></div>`:""}
+ <h2 style="margin-top:18px">Activity</h2>`+(S.ledger.filter(l=>l.user_id===S.user.id).map(l=>`<div class="card row"><div><b>${esc(l.type)}</b><div class="mute">${esc(l.note)}</div></div><b style="color:var(${l.amount<0?"--red":"--ok"})">${l.amount>0?"+":""}${fc(l.amount,l.coin)} ${l.coin}</b></div>`).join("")||`<div class="empty">No activity yet.</div>`)}
+function addStock(){const v=+$("#sv").value;if(v>0)rpc("admin_add_stock",{p_coin:$("#sc").value,p_amount:v})}
+function vRates(){return`<h2>MWK rates and payment details</h2><div class="card"><div class="mute" style="margin-bottom:8px">Set buy and sell rates for each coin before accepting orders.</div><div class="grid">${CL.map(c=>`<div><b>${c}</b><label for="b${c}">Buy rate (${CUR})</label><input id="b${c}" type="number" value="${rate(c,"buy")}"><label for="s${c}">Sell rate (${CUR})</label><input id="s${c}" type="number" value="${rate(c,"sell")}"></div>`).join("")}</div>
+ <label for="bank">Your Malawi payment details</label><textarea id="bank" rows="4">${esc(S.bank)}</textarea><div class="actions"><button class="btn" onclick="saveRates()">Save changes</button></div></div>`}
+async function saveRates(){const o={};CL.forEach(c=>{const b=+$("#b"+c).value,s=+$("#s"+c).value;if(b>0&&s>0)o[c]={buy:b,sell:s}});
+ await rpc("admin_save_rates",{p_rates:o});if(await rpc("admin_save_payment_details",{p_details:$("#bank").value}))alert("Saved.")}
+function vSignals(){return`<h2>Trading Signals</h2><p class="mute">Trading carries risk and no signal is guaranteed.</p>`+(adm()?`<details class="card"><summary>Post a signal</summary><div class="grid" style="margin-top:8px"><div><label for="sp">Pair</label><input id="sp" placeholder="EUR/USD"></div><div><label for="ss">Direction</label><select id="ss"><option>Buy</option><option>Sell</option></select></div><div><label for="se">Entry</label><input id="se"></div><div><label for="st">Take profit</label><input id="st"></div><div><label for="sl">Stop loss</label><input id="sl"></div><div><label for="sn">Note</label><input id="sn"></div></div><div class="actions"><button class="btn" onclick="addSignal()">Post signal</button></div></details>`:"")+
+ (S.signals.length?`<div class="grid">`+S.signals.map(s=>`<div class="card"><div class="row"><b>${esc(s.pair)}</b><span class="tag">${s.side}</span></div><div class="sum"><span>Entry</span><span>${esc(s.entry)}</span><span>Take profit</span><span>${esc(s.take_profit||"-")}</span><span>Stop loss</span><span>${esc(s.stop_loss||"-")}</span></div>${s.note?`<p class="mute">${esc(s.note)}</p>`:""}<div class="mute">${new Date(s.created_at).toLocaleString()}</div></div>`).join("")+`</div>`:`<div class="empty">No signals yet.</div>`)}
+function addSignal(){rpc("admin_post_signal",{p_pair:$("#sp").value,p_side:$("#ss").value,p_entry:$("#se").value,p_tp:$("#st").value,p_sl:$("#sl").value,p_note:$("#sn").value})}
+function vProfile(){return`<h2>Profile</h2><div class="card"><b style="font-size:20px">${esc(S.prof?.full_name||"")}</b><div class="mute">${esc(S.prof?.email||"")} · ${adm()?"Owner account":"Customer account"}</div></div>`+(adm()?"":`<div class="actions"><button class="btn alt" onclick="nav('wallet')">My wallet</button></div>`)}
+
+function render(){
+ $("#hd").hidden=!S.user;
+ if(!S.user){$("#nav").innerHTML="";$("#app").innerHTML=vLogin();return}
+ if(!S.prof){$("#app").innerHTML=`<div class="empty">Loading…</div>`;return}
+ $("#who").textContent=S.prof.full_name||S.prof.email;
+ const A=adm(),tabs=A?[["orders","Orders"],["rates","Rates"],["wallet","Stock"],["signals","Signals"],["profile","Profile"]]:[["dash","Dashboard"],["orders","Transactions"],["signals","Signals"],["profile","Profile"]];
+ const V={dash:vDash,trade:vTrade,orders:vOrders,order:vOrder,wallet:vWallet,rates:vRates,signals:vSignals,profile:vProfile};
+ if(!V[S.view]||(A&&["dash","trade"].includes(S.view))||(!A&&S.view==="rates"))S.view=A?"orders":"dash";
+ const tabOf={trade:"dash",order:"orders",wallet:A?"wallet":"dash"}[S.view]||S.view;
+ $("#nav").innerHTML=tabs.map(t=>`<button class="${tabOf===t[0]?"on":""}" onclick="nav('${t[0]}')">${t[1]}</button>`).join("");
+ $("#app").innerHTML=V[S.view]()+`<p class="note">Live mode: data, escrow and roles are enforced by Supabase. Verify payments yourself before releasing crypto.</p>`;
+ const c=$("#chat");if(c)c.scrollTop=c.scrollHeight;tick()}
+function tick(){const t=$("#tm");if(t){const s=Math.max(0,Math.floor((+t.dataset.exp-Date.now())/1000));t.textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}}
+setInterval(tick,1000);
+setInterval(async()=>{if(S.user){await sb.rpc("expire_orders");load()}},5000);
+boot();
+</script>
+</body>
+</html>
